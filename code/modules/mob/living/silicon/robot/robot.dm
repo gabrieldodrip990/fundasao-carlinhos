@@ -35,12 +35,12 @@
 
 //Hud stuff
 
-	var/obj/screen/inv1 = null
-	var/obj/screen/inv2 = null
-	var/obj/screen/inv3 = null
+	var/atom/movable/screen/inv1 = null
+	var/atom/movable/screen/inv2 = null
+	var/atom/movable/screen/inv3 = null
 
 	var/shown_robot_modules = 0 //Used to determine whether they have the module menu shown or not
-	var/obj/screen/robot_modules_background
+	var/atom/movable/screen/robot_modules_background
 
 //3 Modules can be activated at any one time.
 	var/obj/item/robot_module/module = null
@@ -224,20 +224,7 @@
 /mob/living/silicon/robot/proc/set_module_sprites(list/new_sprites)
 	if(new_sprites && new_sprites.len)
 		module_sprites = new_sprites.Copy()
-		//Custom_sprite check and entry
-
-		if (custom_sprite)
-			var/list/valid_states = icon_states(CUSTOM_ITEM_SYNTH)
-			if("[ckey]-[modtype]" in valid_states)
-				module_sprites["Custom"] = "[src.ckey]-[modtype]"
-				icon = CUSTOM_ITEM_SYNTH
-				icontype = "Custom"
-			else
-				icontype = module_sprites[1]
-				icon = 'icons/mob/robots.dmi'
-				to_chat(src, SPAN_WARNING("Custom Sprite Sheet does not contain a valid icon_state for [ckey]-[modtype]"))
-		else
-			icontype = module_sprites[1]
+		icontype = module_sprites[1]
 		icon_state = module_sprites[icontype]
 	update_icon()
 	return module_sprites
@@ -325,9 +312,6 @@
 	//We also need to update name of internal camera.
 	if (camera)
 		camera.c_tag = changed_name
-
-	if(!custom_sprite) //Check for custom sprite
-		set_custom_sprite()
 
 	//Flavour text.
 	if(client)
@@ -500,7 +484,7 @@
 			return
 		var/obj/item/weldingtool/WT = W
 		if (WT.remove_fuel(0))
-			user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
+			user.setClickCooldown(CLICK_CD_ATTACK)
 			adjustBruteLoss(-30)
 			updatehealth()
 			add_fingerprint(user)
@@ -516,7 +500,7 @@
 			return
 		var/obj/item/stack/cable_coil/coil = W
 		if (coil.use(1))
-			user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
+			user.setClickCooldown(CLICK_CD_ATTACK)
 			adjustFireLoss(-30)
 			updatehealth()
 			for(var/mob/O in viewers(user, null))

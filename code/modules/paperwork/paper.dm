@@ -190,8 +190,7 @@
 	html += "[stamps]"
 
 	// Ported to browser datum for IE11 feature parity
-	var/datum/browser/window = new(user, "paper_[name]")
-	window.stylesheets.Remove("common")
+	var/datum/browser/window = new(user, "paper_[name]", include_common = FALSE)
 	window.add_stylesheet("acs", 'html/acs.css')
 	window.add_head_content("<title>[name]</title><style>body { background-color: [color]; }</style>")
 	window.set_content(html)
@@ -205,7 +204,7 @@
 	set category = "Object"
 	set src in usr
 
-	if((MUTATION_CLUMSY in usr.mutations) && prob(50))
+	if(((MUTATION_CLUMSY in usr.mutations) || (HAS_TRAIT(usr, TRAIT_CLUMSY))) && prob(50))
 		to_chat(usr, SPAN_WARNING("You cut yourself on the paper."))
 		return
 	else if(is_memo)
@@ -688,7 +687,6 @@
 /obj/item/paper/aromatherapy_disclaimer
 	name = "aromatherapy disclaimer"
 	info = "<I>The manufacturer and the retailer make no claims of the contained products' effacy.</I> <BR><BR><B>Use at your own risk.</B>"
-
 
 #undef PAPER_CAMERA_DISTANCE
 #undef PAPER_EYEBALL_DISTANCE

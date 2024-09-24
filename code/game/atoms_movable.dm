@@ -21,6 +21,10 @@
 	var/item_state = null // Used to specify the item state for the on-mob overlays.
 	var/does_spin = TRUE // Does the atom spin when thrown (of course it does :P)
 	var/datum/orbit/orbiting = null
+	/// How many pixels on the X axis to offset any generated floating messages when this is the holder
+	var/floating_message_pixel_x_offset = 0
+	/// How many pixels on the Y axis to offset any generated floating messages when this is the holder
+	var/floating_message_pixel_y_offset = 0
 
 /atom/movable/Destroy()
 	if(!(atom_flags & ATOM_FLAG_INITIALIZED))
@@ -91,7 +95,7 @@
 			if(is_new_area && is_destination_turf)
 				destination.loc.Entered(src, origin)
 
-	SEND_SIGNAL(src, COMSIG_MOVED, src, origin, destination)
+	SEND_SIGNAL(src, COMSIG_MOVED, origin, destination)
 
 	return 1
 
@@ -175,14 +179,14 @@
 		return INITIALIZE_HINT_QDEL
 	master = loc
 	SetName(master.name)
-	set_dir(master.dir)
+	setDir(master.dir)
 
 	if(istype(master, /atom/movable))
 		RegisterSignal(master, COMSIG_MOVED, follow_proc)
 		SetInitLoc()
 
 	RegisterSignal(master, COMSIG_PARENT_QDELETING, TYPE_PROC_REF(/datum, qdel_self))
-	RegisterSignal(master, COMSIG_DIR_SET, TYPE_PROC_REF(/atom, recursive_dir_set))
+	RegisterSignal(master, COMSIG_ATOM_DIR_CHANGE, TYPE_PROC_REF(/atom, recursive_dir_set))
 
 	. = ..()
 
@@ -193,7 +197,7 @@
 	if(istype(master, /atom/movable))
 		UnregisterSignal(master, COMSIG_MOVED)
 	UnregisterSignal(master, COMSIG_PARENT_QDELETING)
-	UnregisterSignal(master, COMSIG_DIR_SET)
+	UnregisterSignal(master, COMSIG_ATOM_DIR_CHANGE)
 	master = null
 	. = ..()
 

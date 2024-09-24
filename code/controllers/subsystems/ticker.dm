@@ -44,6 +44,7 @@ SUBSYSTEM_DEF(ticker)
 	if(start_ASAP)
 		to_world(SPAN_INFO("<B>The game will start as soon as possible due to configuration!</B>"))
 	else
+		send2chat("<@&899514330461126656>, New Round Means a New MEEEEEEEEEEEEEEE!" , "roundping")
 		to_world(SPAN_INFO("<B>Welcome to the pre-game lobby!</B>"))
 		to_world("Please, setup your character and select ready. Game will start in [round(pregame_timeleft/10)] seconds.")
 	round_start_time = world.time
@@ -342,7 +343,6 @@ Helpers
 				captainless=0
 			if(!player_is_antag(player.mind, only_offstation_roles = 1))
 				SSjobs.equip_rank(player, player.mind.assigned_role, 0)
-				SScustomitems.equip_custom_items(player)
 	if(captainless)
 		for(var/mob/M in GLOB.player_list)
 			if(!istype(M,/mob/new_player))

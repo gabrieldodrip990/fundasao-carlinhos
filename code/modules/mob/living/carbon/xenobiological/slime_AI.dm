@@ -7,8 +7,7 @@
 			attacked = 50 // Let's not get into absurdly long periods of rage
 		--attacked
 
-	if(confused > 0)
-		--confused
+	if(has_status_effect(/datum/status_effect/confusion))
 		return
 
 	if(nutrition < get_starve_nutrition()) // If a slime is starving, it starts losing its friends
@@ -24,7 +23,7 @@
 	handle_targets()
 	if(!AIproc)
 		AIproc = 1
-		addtimer(CALLBACK(src, PROC_REF(handle_AI)), 1)
+		handle_AI()
 	handle_speech_and_mood()
 
 /mob/living/carbon/slime/proc/handle_targets()
@@ -115,11 +114,11 @@
 		AIproc = 0
 		return // If we're dead or have a client, we don't need AI, if we're feeding, we continue feeding
 
-	if(confused)
+	if(has_status_effect(/datum/status_effect/confusion))
 		AIproc = 0
 		return
 
-	var/addedDelay = 0
+	attack_cooldown_ticks = max(0, attack_cooldown_ticks - 1)
 
 	if(amount_grown >= SLIME_EVOLUTION_THRESHOLD && !Target)
 		if(is_adult)
@@ -144,20 +143,23 @@
 		if(Target.Adjacent(src))
 			if(istype(Target, /mob/living/silicon)) // Glomp the silicons
 				a_intent = I_HURT
-				UnarmedAttack(Target)
-				addedDelay = 10
+				if(attack_cooldown_ticks < 0)
+					UnarmedAttack(Target)
+					attack_cooldown_ticks = 3
 
 			else if(Target.client && !Target.lying && prob(60 + powerlevel * 4)) // Try to take down the target first
 				a_intent = I_DISARM
-				UnarmedAttack(Target)
-				addedDelay = 10
+				if(attack_cooldown_ticks < 0)
+					UnarmedAttack(Target)
+					attack_cooldown_ticks = 3
 
 			else
 				a_intent = I_GRAB
 				if(invalidFeedTarget(Target))
 					a_intent = I_HURT //just glomp them instead
-					addedDelay = 10
-				UnarmedAttack(Target)
+				if(attack_cooldown_ticks < 0)
+					UnarmedAttack(Target)
+					attack_cooldown_ticks = 3
 
 		else if(can_see(Target))
 			step_to(src, Target)
@@ -179,14 +181,10 @@
 				a_intent = I_HURT
 			UnarmedAttack(frenemy)
 
-	var/sleeptime = max(movement_delay(), 5) + addedDelay // Maximum one action per half a second
-	addtimer(CALLBACK(src, PROC_REF(handle_AI)), sleeptime)
-
-
 /mob/living/carbon/slime/proc/UpdateFace()
 	var/newmood = ""
 	a_intent = I_HELP
-	if(confused)
+	if(has_status_effect(/datum/status_effect/confusion))
 		newmood = "pout"
 	else if(rabid || attacked)
 		newmood = "angry"

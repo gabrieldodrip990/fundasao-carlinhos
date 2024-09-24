@@ -502,19 +502,23 @@ var/global/floorIsLava = 0
 
 
 /datum/admins/proc/announce()
-	set category = "Special Verbs"
+	set category = "Admin"
 	set name = "Announce"
 	set desc="Announce your desires to the world"
 	if(!check_rights(0))	return
 
 	var/message = input("Global message to send:", "Admin Announce", null, null) as message
-	message = sanitize(message, 500, extra = 0)
+	var/max_length = 1000
 	if(message)
+		if(length(message) >= max_length)
+			var/overflow = ((length(message)+1) - max_length)
+			to_chat(usr, SPAN_WARNING("Your message is too long by [overflow] character\s."))
+			return
+		message = copytext_char(message,1,max_length)
 		message = replacetext(message, "\n", "<br>") // required since we're putting it in a <p> tag
 		to_world("<span class=notice><b>[usr.key] Announces:</b><p style='text-indent: 50px'>[message]</p></span>")
 		log_admin("Announce: [key_name(usr)] : [message]")
 	SSstatistics.add_field_details("admin_verb","A") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-
 /datum/admins/proc/toggleooc()
 	set category = "Server"
 	set desc="Globally Toggles OOC"
@@ -843,47 +847,6 @@ var/global/floorIsLava = 0
 	var/datum/seed/S = SSplants.seeds[seedtype]
 	S.harvest(usr,0,0,1)
 	log_admin("[key_name(usr)] spawned [seedtype] fruit at ([usr.x],[usr.y],[usr.z])")
-
-/datum/admins/proc/spawn_custom_item()
-	set category = "Debug"
-	set desc = "Spawn a custom item."
-	set name = "Spawn Custom Item"
-
-	if(!check_rights(R_SPAWN))	return
-
-	var/owner = input("Select a ckey.", "Spawn Custom Item") as null|anything in SScustomitems.custom_items_by_ckey
-	if(!owner|| !SScustomitems.custom_items_by_ckey[owner])
-		return
-
-	var/list/possible_items = list()
-	for(var/datum/custom_item/item in SScustomitems.custom_items_by_ckey[owner])
-		possible_items[item.item_name] = item
-	var/item_to_spawn = input("Select an item to spawn.", "Spawn Custom Item") as null|anything in possible_items
-	if(item_to_spawn && possible_items[item_to_spawn])
-		var/datum/custom_item/item_datum = possible_items[item_to_spawn]
-		item_datum.spawn_item(get_turf(usr))
-
-/datum/admins/proc/check_custom_items()
-
-	set category = "Debug"
-	set desc = "Check the custom item list."
-	set name = "Check Custom Items"
-
-	if(!check_rights(R_SPAWN))	return
-
-	if(!SScustomitems.custom_items_by_ckey)
-		to_chat(usr, "Custom item list is null.")
-		return
-
-	if(!SScustomitems.custom_items_by_ckey.len)
-		to_chat(usr, "Custom item list not populated.")
-		return
-
-	for(var/assoc_key in SScustomitems.custom_items_by_ckey)
-		to_chat(usr, "[assoc_key] has:")
-		var/list/current_items = SScustomitems.custom_items_by_ckey[assoc_key]
-		for(var/datum/custom_item/item in current_items)
-			to_chat(usr, "- name: [item.item_name] icon: [item.item_icon_state] path: [item.item_path] desc: [item.item_desc]")
 
 /datum/admins/proc/spawn_plant(seedtype in SSplants.seeds)
 	set category = "Debug"
@@ -1329,7 +1292,8 @@ var/global/floorIsLava = 0
 			data += "[item.name] - <a href='?_src_=holder;AdminFaxView=\ref[item]'>view message</a><br>"
 	else
 		data += "<center>No faxes yet.</center>"
-	show_browser(usr, "<HTML><HEAD><TITLE>Fax History</TITLE></HEAD><BODY>[data]</BODY></HTML>", "window=FaxHistory;size=450x400")
+	show_browser(usr, "<HTML><HEAD><TITLE>Fax History</TITLE><meta http-equiv='X-UA-Compatible' content='IE=edge' charset='UTF-8'/></HEAD><BODY>[data]</BODY></HTML>", "window=FaxHistory;size=450x400")
+
 
 /datum/admins/var/obj/item/paper/admin/faxreply // var to hold fax replies in
 
